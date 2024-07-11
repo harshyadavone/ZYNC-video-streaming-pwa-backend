@@ -70,9 +70,9 @@ export const getChannelPlaylistsService = async ({
   page,
   limit,
   sortOrder = "oldest",
-}: GetAllChannelPlaylistParams & { sortOrder?: "oldest" | "newest" }): Promise<
-  GetAllChannelPlaylistsResponse
-> => {
+}: GetAllChannelPlaylistParams & {
+  sortOrder?: "oldest" | "newest";
+}): Promise<GetAllChannelPlaylistsResponse> => {
   const skip = (page - 1) * limit;
 
   // Query playlists for the specified channel
@@ -106,7 +106,6 @@ export const getChannelPlaylistsService = async ({
   };
 };
 
-
 type GetUserPlaylistParams = {
   ownerId: number;
   page: number;
@@ -128,9 +127,9 @@ export const getUserPlaylistsService = async ({
   page,
   limit,
   sortOrder = "oldest",
-}: GetUserPlaylistParams & { sortOrder?: "oldest" | "newest" }): Promise<
-  GetUserPlaylistsResponse
-> => {
+}: GetUserPlaylistParams & {
+  sortOrder?: "oldest" | "newest";
+}): Promise<GetUserPlaylistsResponse> => {
   const skip = (page - 1) * limit;
 
   // Query all playlists owned by the user and exclude playlists associated with any channel
@@ -176,17 +175,74 @@ export const getUserPlaylistsService = async ({
 
 type params = {
   playlistId: number;
+  page:number;
+  limit:number
 };
 
-export const getPlaylistByIdService = async ({ playlistId }: params) => {
-  // Query all playlists except the one owned by the user
+export const getPlaylistByIdService = async ({ playlistId, page, limit }: params) => {
+  const skip = (page - 1) * limit;
+
   const playlist = await prisma.playlist.findUnique({
     where: {
       id: playlistId,
     },
+    include: {
+      videos: {
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          channel: {
+            select: {
+              id: true,
+              name: true,
+              channelProfileImage: true,
+            },
+          },
+        },
+      },
+      owner: {
+        select: {
+          id: true,
+          username: true,
+          avatar: true,
+        },
+      },
+    },
   });
 
-  return playlist;
+  if (!playlist) {
+    return null;
+  }
+
+  // Get total count of videos in the playlist
+  const total = await prisma.video.count({
+    where: {
+      playlists: {
+        some: {
+          id: playlistId,
+        },
+      },
+    },
+  });
+
+  return {
+    playlist: {
+      ...playlist,
+      videos: playlist.videos.map(video => ({
+        ...video,
+        channel: video.channel,
+      })),
+    },
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 export async function addVideoToPlaylistService(
@@ -236,21 +292,23 @@ export async function removeVideoFromPlaylistService(
   }
 }
 
-
-export async function isVideoInPlaylistService(playlistId: number, videoId: number) {
+export async function isVideoInPlaylistService(
+  playlistId: number,
+  videoId: number
+) {
   try {
     const count = await prisma.playlist.count({
       where: {
-        id: playlistId, 
+        id: playlistId,
         videos: {
           some: {
-            id: videoId
-          }
-        }
-      } 
-    }); 
+            id: videoId,
+          },
+        },
+      },
+    });
 
-    return count > 0; 
+    return count > 0;
   } catch (error) {
     console.error("Error checking if video is in playlist:", error);
     throw error;

@@ -22,7 +22,7 @@ export const getWatchHistory = async ({
   const [watchHistory, total] = await prisma.$transaction([
     prisma.watchHistory.findMany({
       where: { userId },
-      include: { video: true },
+      include: { video: {include:{channel:{select:{id:true, name: true, channelProfileImage: true}}}} },
       orderBy: { updatedAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,

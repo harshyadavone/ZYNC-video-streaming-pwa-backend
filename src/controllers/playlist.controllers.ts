@@ -136,17 +136,22 @@ export const getUserPrivatePlaylists = catchErrors(async (req, res) => {
 
 export const getPlaylistById = catchErrors(async (req, res) => {
   const playlistId = parseInt(req.params.id);
-
-  // const ownerId = req.userId;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
 
   appAssert(playlistId, NOT_FOUND, "Id not found");
 
-  // Call service function to fetch all playlists
-  const playlist = await getPlaylistByIdService({
+  const result = await getPlaylistByIdService({
     playlistId,
+    page,
+    limit,
   });
 
-  return res.status(200).json(playlist);
+  if (!result) {
+    return res.status(404).json({ message: "Playlist not found" });
+  }
+
+  return res.status(200).json(result);
 });
 
 export const addVideoToPlaylist = catchErrors(async (req, res) => {

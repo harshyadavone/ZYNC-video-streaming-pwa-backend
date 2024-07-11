@@ -74,6 +74,12 @@ export const updateChannel = async ({
   channelProfileImage,
   slug,
 }: UpdateChannelParams) => {
+
+  if(!id)
+  {
+    return console.log("Id not found")
+  }
+
   const channel = await prisma.channel.update({
     where: { id },
     data: {
@@ -170,6 +176,24 @@ export const getMyChannel = async (userId: number | undefined) => {
   const channel = await prisma.channel.findFirst({
     where: {
       ownerId: userId,
+    },
+    // Optionally include related data
+    include: {
+      _count: { select: { videos: true, subscribers: true, playlists: true } },
+    },
+  });
+
+  
+  // appAssert(channel, NOT_FOUND, "Channel Not found");
+
+  return {
+    channel,
+  };
+};
+export const getChannel = async (channelId: number) => {
+  const channel = await prisma.channel.findFirst({
+    where: {
+      id: channelId,
     },
     // Optionally include related data
     include: {

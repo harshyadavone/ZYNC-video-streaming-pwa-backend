@@ -14,7 +14,10 @@ export const getBookmarksService = async (
     skip,
   });
 
-  const total = bookmarks.length;
+  // const total = bookmarks.length; 
+  const total = await prisma.bookmark.count({
+    where : {userId}
+  })
   const totalPages = Math.ceil(total / limit);
 
   return {

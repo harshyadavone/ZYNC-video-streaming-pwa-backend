@@ -48,7 +48,7 @@ app.use("/video", authenticate, validateSession, videoRouter)
 app.use("/comment", authenticate, validateSession, commentRouter)
 app.use("/bookmark", authenticate, validateSession, bookmarkRouter)
 app.use("/subscription", authenticate, validateSession, subscriptionRouter)
-app.use("/me", authenticate, validateSession, watchHistoryRouter)
+app.use("/history", authenticate, validateSession, watchHistoryRouter)
 
 app.use(errorHandler)
 

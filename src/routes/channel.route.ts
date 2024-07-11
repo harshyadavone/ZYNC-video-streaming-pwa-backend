@@ -3,6 +3,7 @@ import {
   createChannelHandler,
   deleteChannelHandler,
   getAllChannelsHandler,
+  getChannelHandler,
   getMyChannelHandler,
   updateChannelHandler,
 } from "../controllers/channel.controller";
@@ -20,7 +21,7 @@ channelRoutes.post(
   createChannelHandler
 );
 
-// // Update an existing channel
+// Update an existing channel
 channelRoutes.put(
   "/update-channel",
   upload.fields([
@@ -37,5 +38,8 @@ channelRoutes.delete("/delete-channel", deleteChannelHandler);
 channelRoutes.get("/all-channels", getAllChannelsHandler);
 
 channelRoutes.get("/my-channel", getMyChannelHandler);
+
+
+channelRoutes.get("/channel/:channelId", getChannelHandler);
 
 export default channelRoutes;

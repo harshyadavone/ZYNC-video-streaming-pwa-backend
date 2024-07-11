@@ -8,7 +8,7 @@ export const createPlaylistSchema = z.object({
 });
 
 export const updatePlaylistSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().max(100).optional(),
   description: z.string().max(500).optional(),
   privacy: z.nativeEnum(Privacy).optional(),
 });

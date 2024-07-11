@@ -1,10 +1,11 @@
 // controllers/channelController.js
 
 import prisma from "../config/client";
-import { BAD_REQUEST, CREATED, UNAUTHORIZED } from "../constants/http";
+import { BAD_REQUEST, CREATED, NOT_FOUND, UNAUTHORIZED } from "../constants/http";
 import {
   createChannel,
   getAllChannels,
+  getChannel,
   getMyChannel,
   updateChannel,
 } from "../services/channel.service";
@@ -118,9 +119,19 @@ export const createChannelHandler = catchErrors(async (req, res) => {
 
 export const updateChannelHandler = catchErrors(async (req, res) => {
   try {
-    const id = Number(req.userId);
+    const ownerId = Number(req.userId);
 
     const { name, description, slug } = updateChannelSchema.parse(req.body);
+
+    const channel = await prisma.channel.findFirst({
+      where: {
+        ownerId,
+      },
+    });
+
+    if(!channel){
+      return res.status(404).json(NOT_FOUND)
+    }
 
     // Handle file uploads for channelProfileImage
     let channelProfileImage: string | undefined;
@@ -170,7 +181,7 @@ export const updateChannelHandler = catchErrors(async (req, res) => {
     }
 
     const updatedChannel = await updateChannel({
-      id,
+      id :channel?.id,
       name,
       description,
       slug,
@@ -202,9 +213,18 @@ export const deleteChannelHandler = catchErrors(async (req, res) => {
 
 export const getMyChannelHandler = catchErrors(async (req, res) => {
   const userId = req.userId;
-console.log("User Id in get Channel handler",userId)
-  // Call service function to get user's channel
+  // service function to get user's channel
   const channel = await getMyChannel(userId);
+
+  return res.status(200).json(channel);
+});
+
+export const getChannelHandler = catchErrors(async (req, res) => {
+
+  const channelId = parseInt(req.params.channelId)
+  console.log(channelId)
+  // Call service function to get channel by id
+  const channel = await getChannel(channelId);
 
   return res.status(200).json(channel);
 });

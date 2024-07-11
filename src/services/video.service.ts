@@ -235,7 +235,7 @@ export const getChannelVideosService = async ({
   const skip = (page - 1) * limit;
 
   const videos = await prisma.video.findMany({
-    where: { channelId },
+    where: { channelId, AND: { privacy: "PUBLIC" } },
     skip,
     take: limit,
     orderBy: [
@@ -246,6 +246,15 @@ export const getChannelVideosService = async ({
         title: "desc",
       },
     ],
+    include: {
+      channel: {
+        select: {
+          id: true,
+          name: true,
+          channelProfileImage: true,
+        },
+      },
+    },
   });
 
   const total = await prisma.video.count({
@@ -631,7 +640,10 @@ export const logViewService = async ({ videoId, userId }: LogViewParams) => {
     ]);
 
     // If it's a new view or the cooldown period has passed, update the view count
-    if (created || now.getTime() - viewedVideo.viewedAt.getTime() > VIEW_COOLDOWN) {
+    if (
+      created ||
+      now.getTime() - viewedVideo.viewedAt.getTime() > VIEW_COOLDOWN
+    ) {
       await prisma.viewedVideo.update({
         where: { id: viewedVideo.id },
         data: { viewedAt: now },
@@ -640,9 +652,15 @@ export const logViewService = async ({ videoId, userId }: LogViewParams) => {
 
     console.log(`View logged for video ${videoId} by user ${userId}`);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
       console.error("Unique constraint violation:", error);
-    } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+    } else if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
       throw new Error(`Video with ID ${videoId} does not exist.`);
     } else {
       console.error("Error logging view:", error);

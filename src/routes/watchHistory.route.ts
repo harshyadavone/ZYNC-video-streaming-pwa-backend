@@ -11,7 +11,7 @@ import {
 
 const watchHistoryRouter = Router();
 
-watchHistoryRouter.get("/watchHistory", getWatchHistoryHandler); // Consider pagination and filtering
+watchHistoryRouter.get("/watchHistory", getWatchHistoryHandler); 
 watchHistoryRouter.get(
   "/watchHistory/:watchHistoryId",
   getWatchHistoryByIdHandler

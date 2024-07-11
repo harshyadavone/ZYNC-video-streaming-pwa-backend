@@ -9,7 +9,7 @@ import catchErrors from "../utils/catchErrors";
 export const getBookmarks = catchErrors(async (req, res) => {
   try {
     const { page, limit } = req.query;
-    const userId = Number(req.userId); // Assuming you have authentication middleware
+    const userId = Number(req.userId); 
     const bookmarks = await getBookmarksService(
       userId,
       Number(page),
