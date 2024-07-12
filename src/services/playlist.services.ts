@@ -269,6 +269,31 @@ export async function addVideoToPlaylistService(
   }
 }
 
+export async function addVideoToChannelPlaylistService(
+  playlistId: number,
+  videoId: number,
+  channelId: number,
+) {
+  try {
+    const updatedPlaylist = await prisma.playlist.update({
+      where: { id: playlistId , channelId},
+      data: {
+        videos: {
+          connect: { id: videoId },
+        },
+      },
+      include: {
+        videos: true,
+      },
+    });
+
+    return updatedPlaylist;
+  } catch (error) {
+    console.error("Error adding video to playlist:", error);
+    throw error;
+  }
+}
+
 export async function removeVideoFromPlaylistService(
   playlistId: number,
   videoId: number

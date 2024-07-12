@@ -5,6 +5,7 @@ import {
   updatePlaylistSchema,
 } from "../validations/playlist.validation";
 import {
+  addVideoToChannelPlaylistService,
   addVideoToPlaylistService,
   createPlaylistService,
   getChannelPlaylistsService,
@@ -188,3 +189,20 @@ export async function isVideoInPlaylist(req: Request, res: Response) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+
+export const addVideoToChannelPlaylist = catchErrors(async (req, res) => {
+
+  const playlistId = parseInt(req.params.playlistId)
+  const videoId = parseInt(req.params.videoId)
+  const channelId = parseInt(req.params.channelId)
+  console.log('====================================');
+  console.log("Video ID", videoId);
+  console.log("Channel ID", channelId);
+  console.log("Playlist ID", playlistId);
+  console.log('====================================');
+
+  const response = await addVideoToChannelPlaylistService(playlistId, videoId, channelId)
+
+  res.status(OK).json(response)
+});

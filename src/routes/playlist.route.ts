@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { addVideoToPlaylist, createPlaylist, deletePlaylist, getChannelPlaylists, getPlaylistById, getUserPrivatePlaylists, isVideoInPlaylist, removeVideoFromPlaylist, updatePlaylist } from "../controllers/playlist.controllers";
+import { addVideoToChannelPlaylist, addVideoToPlaylist, createPlaylist, deletePlaylist, getChannelPlaylists, getPlaylistById, getUserPrivatePlaylists, isVideoInPlaylist, removeVideoFromPlaylist, updatePlaylist } from "../controllers/playlist.controllers";
 
 const playlistRouter = Router();
 
@@ -13,6 +13,7 @@ playlistRouter.get('/channels/:channelId/playlists', getChannelPlaylists); // Ge
 playlistRouter.get('/users/private-playlists', getUserPrivatePlaylists); // Get all private playlists of a user
 playlistRouter.get('/playlists/:id', getPlaylistById); // Get a playlist by ID
 playlistRouter.get('/:playlistId/has-video/:videoId', isVideoInPlaylist);
+playlistRouter.post('/playlists/:playlistId/:channelId/video/:videoId', addVideoToChannelPlaylist);
 
 
 export default playlistRouter;  
