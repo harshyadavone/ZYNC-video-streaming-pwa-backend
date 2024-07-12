@@ -9,15 +9,24 @@ export const getBookmarksService = async (
   const skip = (page - 1) * limit;
   const bookmarks = await prisma.bookmark.findMany({
     where: { userId },
-    include: { video: true },
+    include: {
+      video: {
+        include: {
+          channel: {
+            select: { id: true, name: true, channelProfileImage: true },
+          },
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
     take: limit,
     skip,
   });
 
-  // const total = bookmarks.length; 
+  // const total = bookmarks.length;
   const total = await prisma.bookmark.count({
-    where : {userId}
-  })
+    where: { userId },
+  });
   const totalPages = Math.ceil(total / limit);
 
   return {
@@ -59,6 +68,4 @@ export const getVideoBookmarksService = async (
     },
     include: { video: true },
   });
-
-  
 };
