@@ -93,20 +93,20 @@ model User {
 }
 
 model Channel {
-  id                  Int      @id @default(autoincrement())
+  id                  Int               @id @default(autoincrement())
   name                String
   description         String?
-  slug                String   @unique
+  slug                String            @unique
   bannerImage         String?
   channelProfileImage String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  owner               User     @relation(fields: [ownerId], references: [id])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  owner               User              @relation(fields: [ownerId], references: [id])
   ownerId             Int
-  videos      Video[]
-  subscribers Subscription[]
-  analytics   ChannelAnalytics?
-  playlists   Playlist[]
+  videos              Video[]
+  subscribers         Subscription[]
+  analytics           ChannelAnalytics?
+  playlists           Playlist[]
 }
 
 model Video {
@@ -162,20 +162,20 @@ model VideoDislike {
 }
 
 model Comment {
-  id        Int               @id @default(autoincrement())
-  content   String
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  likes     Int               @default(0)
-  dislikes  Int               @default(0)
-  userId    Int
-  user      User              @relation(fields: [userId], references: [id])
-  videoId   Int
-  video     Video             @relation(fields: [videoId], references: [id])
-  parentId  Int?
-  parent    Comment?          @relation("CommentReplies", fields: [parentId], references: [id])
-  replies   Comment[]         @relation("CommentReplies")
-  reactions CommentReaction[]
+  id              Int               @id @default(autoincrement())
+  content         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  likes           Int               @default(0)
+  dislikes        Int               @default(0)
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id])
+  videoId         Int
+  video           Video             @relation(fields: [videoId], references: [id])
+  parentId        Int?
+  parent          Comment?          @relation("CommentReplies", fields: [parentId], references: [id])
+  replies         Comment[]         @relation("CommentReplies")
+  reactions       CommentReaction[]
   replyToUsername String?
 }
 
@@ -268,7 +268,6 @@ model WatchHistory {
   @@unique([userId, videoId])
 }
 
-
 model Poll {
   id        Int          @id @default(autoincrement())
   question  String
@@ -285,6 +284,7 @@ model Poll {
 model PollOption {
   id        Int        @id @default(autoincrement())
   text      String
+  order     Int
   createdAt DateTime   @default(now())
   poll      Poll       @relation(fields: [pollId], references: [id])
   pollId    Int

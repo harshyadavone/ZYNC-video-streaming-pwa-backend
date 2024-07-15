@@ -28,7 +28,13 @@ export const getChannelSubscriptionsService = async (
   };
 };
 
-export const getAllUserSubscriptionsService = async (userId: number) => {
+export const getAllUserSubscriptionsService = async (
+  userId: number,
+  page: number,
+  limit: number
+) => {
+  const skip = (page - 1) * limit;
+
   const subscriptions = await prisma.subscription.findMany({
     where: { subscriberId: userId },
     include: {
@@ -43,18 +49,25 @@ export const getAllUserSubscriptionsService = async (userId: number) => {
         },
       },
     },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+    skip,
   });
 
-  return subscriptions.map((sub) => ({
-    id: sub.id,
-    status: sub.status,
-    createdAt: sub.createdAt,
-    updatedAt: sub.updatedAt,
-    channelId: sub.channelId,
-    channelName: sub.channel.name,
-    channelProfileImage: sub.channel.channelProfileImage,
-    subscriberCount: sub.channel._count.subscribers,
-  }));
+  const total = await prisma.subscription.count({
+    where: { subscriberId: userId },
+  });
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    subscriptions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 };
 
 export const getSubscriptionByIdService = async (subscriptionId: number) => {
@@ -104,9 +117,9 @@ export const toggleSubscriptionService = async (
     where: { id: channelId },
     include: {
       _count: {
-        select: { subscribers: true }
-      }
-    }
+        select: { subscribers: true },
+      },
+    },
   });
 
   return {
@@ -116,7 +129,9 @@ export const toggleSubscriptionService = async (
     channelName: channel?.name,
     channelProfileImage: channel?.channelProfileImage,
     subscriberCount: channel?._count.subscribers,
-    message: isSubscribed ? "Subscribed successfully" : "Unsubscribed successfully"
+    message: isSubscribed
+      ? "Subscribed successfully"
+      : "Unsubscribed successfully",
   };
 };
 

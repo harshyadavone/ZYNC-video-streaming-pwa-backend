@@ -28,12 +28,14 @@ export const getChannelSubscriptions = catchErrors(async (req, res) => {
 
 export const getAllUserSubscriptions = catchErrors(async (req, res) => {
   const userId = req.userId;
+  const { page, limit } = req.query;
+
 
   if(!userId){
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const result = await getAllUserSubscriptionsService(userId);
+  const result = await getAllUserSubscriptionsService(userId, Number(page), Number(limit));
 
   res.json(result);
 });

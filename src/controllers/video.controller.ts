@@ -5,7 +5,6 @@ import {
   FORBIDDEN,
   NOT_FOUND,
   OK,
-  UNAUTHORIZED,
 } from "../constants/http";
 import {
   getChannelVideosService,
@@ -168,11 +167,12 @@ export const getVideoById = catchErrors(async (req, res) => {
         include: {
           options: {
             include: {
-              votes:{where:{userId}},
+              votes: { where: { userId } },
               _count: {
                 select: { votes: true },
               },
             },
+            orderBy: { order: "asc" }
           },
           _count: {
             select: { votes: true },
@@ -452,6 +452,14 @@ export const createVideoPoll = catchErrors(async (req, res) => {
     throw new Error("UserId is required");
   }
 
+  if (!question || typeof question !== 'string') {
+    throw new Error("Question must be a non-empty string");
+  }
+
+  if (!Array.isArray(options) || options.length < 2 || !options.every(opt => typeof opt.text === 'string')) {
+    throw new Error("Options must be an array of at least two objects with 'text' property");
+  }
+
   const poll = await createPollService(question, options, userId, videoId);
 
   return res.status(OK).json({ poll });
@@ -478,7 +486,7 @@ export const createUserPoll = catchErrors(async (req, res) => {
   }
 
   const poll = await createPollService(question, options, userId);
-
+  
   return res.status(OK).json({ poll });
 });
 

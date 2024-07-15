@@ -450,7 +450,7 @@ export const updateWatchHistoryService = async (
 
 export const createPollService = async (
   question: string,
-  options: string[],
+  options: { text: string; order: number }[],
   userId: number,
   videoId?: number
 ) => {
@@ -458,19 +458,31 @@ export const createPollService = async (
     throw new Error("At least two options are required for a poll");
   }
 
-  const poll = await prisma.poll.create({
-    data: {
-      question,
-      options: {
-        create: options.map((text) => ({ text })),
-      },
-      user: { connect: { id: userId } },
-      ...(videoId && { video: { connect: { id: videoId } } }),
-    },
-    include: { options: true },
-  });
+  try {
+    const poll = await prisma.poll.create({
+      data: {
+        question,
+        options: {
+          create: options.map(({ text, order }) => ({ text, order })),
+        },
+        user: { connect: { id: userId } },
+        ...(videoId && { video: { connect: { id: videoId } } }),
 
-  return poll;
+      },
+      include: {
+        options: {
+          orderBy: {
+            order: 'asc'
+          }
+        }
+      }
+    });
+
+    return poll;
+  } catch (error : any) {
+    console.error('Error creating poll:', error);
+    throw new Error(`Failed to create poll: ${error.message}`);
+  }
 };
 
 export const votePollService = async (
