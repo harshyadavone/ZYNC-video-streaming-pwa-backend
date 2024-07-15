@@ -5,7 +5,7 @@ export const REFRESH_PATH = "/auth/refresh";
 const secure = process.env.NODE_ENV !== "development";
 const defaults: CookieOptions = {
   // TODO: check what all the different types of sameSite does
-  sameSite: "lax",
+  sameSite: "none",
   httpOnly: true,
   secure,
 };
