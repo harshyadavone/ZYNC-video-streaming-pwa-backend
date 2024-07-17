@@ -3,19 +3,16 @@ import { fifteenMinutesFromNow, thirtyDaysFromNow } from "./date";
 
 export const REFRESH_PATH = "/auth/refresh";
 const secure = process.env.NODE_ENV !== "development";
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined; // Default to undefined for local development
-
 const defaults: CookieOptions = {
-  sameSite: "none", // 'none' as you mentioned using 'None'
+  sameSite: "strict",
   httpOnly: true,
   secure,
-  domain: COOKIE_DOMAIN, // Use the COOKIE_DOMAIN environment variable
+  domain: process.env.COOKIE_DOMAIN,
 };
 
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
   ...defaults,
   expires: fifteenMinutesFromNow(),
-  path: '/', // Ensure the path matches when clearing
 });
 
 export const getRefreshTokenCookieOptions = (): CookieOptions => ({
@@ -35,15 +32,8 @@ export const setAuthCookies = ({ res, accessToken, refreshToken }: Params) =>
     .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
     .cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
-export const clearAuthCookies = (res: Response) => {
-  console.log('Clearing cookies with options:', {
-    path: '/',
-    domain: COOKIE_DOMAIN,
-    sameSite: 'none',
-    secure: true,
+export const clearAuthCookies = (res: Response) =>
+  res.clearCookie("accessToken").clearCookie("refreshToken", {
+    path: REFRESH_PATH,
+    domain: process.env.COOKIE_DOMAIN,
   });
-  res.clearCookie("accessToken", { path: '/', domain: COOKIE_DOMAIN, sameSite: 'none', secure: true })
-     .clearCookie("refreshToken", { path: REFRESH_PATH, domain: COOKIE_DOMAIN, sameSite: 'none', secure: true });
-  console.log('Cookies cleared');
-  return res;
-};
