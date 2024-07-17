@@ -4,10 +4,10 @@ import { fifteenMinutesFromNow, thirtyDaysFromNow } from "./date";
 export const REFRESH_PATH = "/auth/refresh";
 const secure = process.env.NODE_ENV !== "development";
 const defaults: CookieOptions = {
-  sameSite: "strict",
+  // TODO: check what all the different types of sameSite does
+  sameSite: "none",
   httpOnly: true,
   secure,
-  domain: process.env.COOKIE_DOMAIN,
 };
 
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
@@ -35,5 +35,4 @@ export const setAuthCookies = ({ res, accessToken, refreshToken }: Params) =>
 export const clearAuthCookies = (res: Response) =>
   res.clearCookie("accessToken").clearCookie("refreshToken", {
     path: REFRESH_PATH,
-    domain: process.env.COOKIE_DOMAIN,
   });
