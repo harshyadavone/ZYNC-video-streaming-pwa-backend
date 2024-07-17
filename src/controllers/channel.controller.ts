@@ -1,7 +1,13 @@
 // controllers/channelController.js
 
 import prisma from "../config/client";
-import { BAD_REQUEST, CREATED, NOT_FOUND, UNAUTHORIZED } from "../constants/http";
+import {
+  BAD_REQUEST,
+  CREATED,
+  NOT_FOUND,
+  OK,
+  UNAUTHORIZED,
+} from "../constants/http";
 import {
   createChannel,
   getAllChannels,
@@ -75,7 +81,6 @@ export const createChannelHandler = catchErrors(async (req, res) => {
       bannerImage: bannerImage || "",
     });
 
-
     const user = await prisma.user.findUnique({ where: { id: ownerId } });
     const session = await prisma.session.create({
       data: {
@@ -118,82 +123,41 @@ export const createChannelHandler = catchErrors(async (req, res) => {
 });
 
 export const updateChannelHandler = catchErrors(async (req, res) => {
-  try {
-    const ownerId = Number(req.userId);
+  const ownerId = Number(req.userId);
+  const { name, description, slug } = updateChannelSchema.parse(req.body);
+  const channel = await prisma.channel.findFirst({ where: { ownerId } });
 
-    const { name, description, slug } = updateChannelSchema.parse(req.body);
-
-    const channel = await prisma.channel.findFirst({
-      where: {
-        ownerId,
-      },
-    });
-
-    if(!channel){
-      return res.status(404).json(NOT_FOUND)
-    }
-
-    // Handle file uploads for channelProfileImage
-    let channelProfileImage: string | undefined;
-    if (
-      req.files &&
-      "channelProfileImage" in req.files &&
-      req.files["channelProfileImage"][0]
-    ) {
-      const channelProfileImageLocalPath =
-        req.files["channelProfileImage"][0].path;
-      const uploadResult = await uploadOnCloudinary(
-        channelProfileImageLocalPath
-      );
-      if (uploadResult) {
-        channelProfileImage = uploadResult.url;
-      } else {
-        throw new Error("Failed to upload channel profile image to Cloudinary");
-      }
-    }
-
-    // Handle file uploads for bannerImage
-    let bannerImage: string | undefined;
-    if (
-      req.files &&
-      "bannerImage" in req.files &&
-      req.files["bannerImage"][0]
-    ) {
-      const bannerImageLocalPath = req.files["bannerImage"][0].path;
-      const uploadResult = await uploadOnCloudinary(bannerImageLocalPath);
-      if (uploadResult) {
-        bannerImage = uploadResult.url;
-      } else {
-        throw new Error("Failed to upload banner image to Cloudinary");
-      }
-    }
-
-    if (
-      !name &&
-      !description &&
-      !slug &&
-      !channelProfileImage &&
-      !bannerImage
-    ) {
-      return res
-        .status(BAD_REQUEST)
-        .json({ error: "At least one field must be provided for update" });
-    }
-
-    const updatedChannel = await updateChannel({
-      id :channel?.id,
-      name,
-      description,
-      slug,
-      channelProfileImage,
-      bannerImage,
-    });
-
-    res.status(200).json(updatedChannel);
-  } catch (error: any) {
-    console.error("Error updating channel:", error);
-    res.status(400).json({ error: error.message });
+  if (!channel) {
+    return res.status(404).json(NOT_FOUND);
   }
+
+  let channelProfileImagePath: string | undefined;
+  let bannerImagePath: string | undefined;
+
+  if (
+    req.files &&
+    "channelProfileImage" in req.files &&
+    req.files["channelProfileImage"][0]
+  ) {
+    channelProfileImagePath = req.files["channelProfileImage"][0].path;
+  }
+
+  if (req.files && "bannerImage" in req.files && req.files["bannerImage"][0]) {
+    bannerImagePath = req.files["bannerImage"][0].path;
+  }
+
+  // Send an immediate response
+
+  // Perform the update asynchronously
+  const updatedChannel = await updateChannel({
+    id: channel.id,
+    name,
+    description,
+    slug,
+    channelProfileImagePath,
+    bannerImagePath,
+  });
+  res.status(OK).json(updatedChannel);
 });
 
 export const deleteChannelHandler = catchErrors(async (req, res) => {
@@ -220,9 +184,7 @@ export const getMyChannelHandler = catchErrors(async (req, res) => {
 });
 
 export const getChannelHandler = catchErrors(async (req, res) => {
-
-  const channelId = parseInt(req.params.channelId)
-  console.log(channelId)
+  const channelId = parseInt(req.params.channelId);
   // Call service function to get channel by id
   const channel = await getChannel(channelId);
 
@@ -233,7 +195,6 @@ export const getAllChannelsHandler = catchErrors(async (req, res) => {
   const { page = 1, limit = 1 } = req.query;
   const userId = req.userId;
 
-  // console.log(req.user)
   // Call service function to fetch all channels except user's own channel
   const channels = await getAllChannels({
     userId,

@@ -74,7 +74,7 @@ export const getComments = catchErrors(async (req: Request, res: Response) => {
     },
   });
 
-  console.log(totalComments)
+  console.log(totalComments);
 
   const response = {
     comments,
@@ -86,7 +86,7 @@ export const getComments = catchErrors(async (req: Request, res: Response) => {
       limit,
     },
   };
-console.log("✔✔🚩",response)
+  console.log("✔✔🚩", response);
   return res.status(OK).json(response);
 });
 
@@ -96,7 +96,6 @@ export const addComment = catchErrors(async (req: Request, res: Response) => {
   const { content, parentId, replyToUsername } = req.body;
   console.log("Received comment data:", req.body);
   // console.log(replyToUsername)
-
 
   if (!userId) {
     return res.status(UNAUTHORIZED).json({ message: "User not authenticated" });
@@ -134,7 +133,6 @@ export const addComment = catchErrors(async (req: Request, res: Response) => {
   });
 
   console.log("Created comment:", comment);
-
 
   if (!parentId) {
     await incrementCommentCount(videoId);
@@ -194,10 +192,11 @@ export const deleteComment = catchErrors(
       "Not authorized to delete this comment"
     );
 
-    // Delete the comment and all its replies
-    await prisma.comment.deleteMany({
-      where: {
-        OR: [{ id: commentId }, { parentId: commentId }],
+    // Delete the comment and all its replies in a nested operation
+    await prisma.comment.delete({
+      where: { id: commentId },
+      include: {
+        replies: true,
       },
     });
 
@@ -206,6 +205,7 @@ export const deleteComment = catchErrors(
       .json({ message: "Comment and its replies deleted successfully" });
   }
 );
+
 
 export const getReplies = catchErrors(async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.commentId);

@@ -3,6 +3,7 @@
 import { Channel, PrismaClient } from "@prisma/client";
 import appAssert from "../utils/appAssert";
 import { CONFLICT, NOT_FOUND } from "../constants/http";
+import { uploadOnCloudinary } from "../utils/cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -62,33 +63,52 @@ type UpdateChannelParams = {
   name?: string;
   description?: string;
   slug?: string;
-  channelProfileImage?: string;
-  bannerImage?: string;
+  bannerImagePath?: string;
+  channelProfileImagePath?: string;
 };
 
 export const updateChannel = async ({
   id,
   name,
   description,
-  bannerImage,
-  channelProfileImage,
+  bannerImagePath,
+  channelProfileImagePath,
   slug,
-}: UpdateChannelParams) => {
-
-  if(!id)
-  {
-    return console.log("Id not found")
+}: UpdateChannelParams): Promise<Channel> => {
+  if (!id) {
+    throw new Error("Id not found");
   }
+
+  const updateData: any = {};
+
+  // Handle channelProfileImage upload
+  if (channelProfileImagePath) {
+    const uploadResult = await uploadOnCloudinary(channelProfileImagePath);
+    if (uploadResult) {
+      updateData.channelProfileImage = uploadResult.url;
+    } else {
+      throw new Error("Failed to upload channel profile image to Cloudinary");
+    }
+  }
+
+  // Handle bannerImage upload
+  if (bannerImagePath) {
+    const uploadResult = await uploadOnCloudinary(bannerImagePath);
+    if (uploadResult) {
+      updateData.bannerImage = uploadResult.url;
+    } else {
+      throw new Error("Failed to upload banner image to Cloudinary");
+    }
+  }
+
+  // Add other fields to updateData
+  if (name) updateData.name = name;
+  if (description) updateData.description = description;
+  if (slug) updateData.slug = slug;
 
   const channel = await prisma.channel.update({
     where: { id },
-    data: {
-      name,
-      description,
-      bannerImage,
-      channelProfileImage,
-      slug,
-    },
+    data: updateData,
   });
 
   return channel;
@@ -183,7 +203,6 @@ export const getMyChannel = async (userId: number | undefined) => {
     },
   });
 
-  
   // appAssert(channel, NOT_FOUND, "Channel Not found");
 
   return {
@@ -201,7 +220,6 @@ export const getChannel = async (channelId: number) => {
     },
   });
 
-  
   // appAssert(channel, NOT_FOUND, "Channel Not found");
 
   return {

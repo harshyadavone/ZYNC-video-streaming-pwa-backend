@@ -67,7 +67,6 @@ export const createAccount = async (data: CreateAccountParams) => {
 
   // Send verification email
   const url = `${APP_ORIGIN}/email/verify/${verificationCode.id}`;
-console.log(url)
   const { error } = await sendMail({
     to: user.email,
     ...getVerifyEmailTemplate(url),

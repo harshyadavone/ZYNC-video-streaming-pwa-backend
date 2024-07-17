@@ -1,6 +1,8 @@
 export const getPasswordResetTemplate = (url: string) => ({
   subject: "Password Reset Request",
-  text: "You requested a password reset. Click on the link to reset your password: " + url,
+  text:
+    "You requested a password reset. Click on the link to reset your password: " +
+    url,
   html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -85,7 +87,7 @@ export const getPasswordResetTemplate = (url: string) => ({
     </div>
 </body>
 </html>
-  `
+  `,
 });
 
 export const getVerifyEmailTemplate = (url: string) => ({
@@ -176,5 +178,5 @@ export const getVerifyEmailTemplate = (url: string) => ({
     </div>
 </body>
 </html>
-  `
+  `,
 });
